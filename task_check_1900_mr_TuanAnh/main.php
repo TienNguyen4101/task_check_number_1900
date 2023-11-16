@@ -34,7 +34,7 @@ if (check_data_barring("17") == TRUE ) {
     // }
 
     $recipients = [
-        ['email' => 'tien412001@gmail.com', 'name' => 'Recipient 1'],
+        ['email' => 'tien412001@gmail.com', 'name' => 'Tien Nguyen'],
     ];
     send_email($file_path, $file_name, $recipients, "ALL"); //==============!!!===============
 
