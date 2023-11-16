@@ -1,7 +1,7 @@
 <?php
-	$server_198 = "183.91.185.198";
-	$usename_198 = "User99";
-	$password_198 = "Ngoctien9";
+	$server_198 = "some_info_198";
+	$usename_198 = "some_info_198";
+	$password_198 = "some_info_198";
 	$db_in_198 = "VoiceReport";
 	$connect_server_198 = mysqli_connect($server_198, $usename_198, $password_198, $db_in_198);
 	
@@ -11,9 +11,9 @@
 	echo "Connected successfully: connect_server_198 \n";
 
 
-	$server_local = "localhost";
-	$usename_local = "User99";
-	$password_local = "Chiru@123";
+	$server_local = "some_info_local";
+	$usename_local = "some_info_local";
+	$password_local = "some_info_local";
 	$db_in_local = "ReportDaily";
 	$connect_local = mysqli_connect($server_local, $usename_local, $password_local, $db_in_local);
 	
@@ -22,6 +22,6 @@
 	}
 	echo "Connected successfully: connect_local \n";
 
-	$apiToken= "6369084280:AAFxZhzm4CrUznvj7ZAENCznn3AR-JKqg7M";
-	$chat_id = "@test_message123";
+	$apiToken= "some_api_in_here";
+	$chat_id = "@some_channel_in_here";
 ?>
