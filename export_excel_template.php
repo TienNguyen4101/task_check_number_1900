@@ -52,7 +52,7 @@ function template_export_excel($sql, $connection, $path_to_save, $name_file)
 		$lastRow = $sheet->getHighestRow() + 1;
 		$sheet->mergeCells('A' . $lastRow . ':' . $highestColumn . $lastRow);
 	
-		// Thêm nội dung vào dòng cuối cùng
+		// Add text to the final rows
 		$sheet->setCellValue('A' . $lastRow, "                                                          CÔNG TY CỔ PHẦN HẠ TẦNG VIỄN THÔNG SỐ (DIGITEL)\n"
 			. "                                                          Địa chỉ giao dịch: Số 2 ngõ 66 Khúc Thừa Dụ, Phường Dịch Vọng, Quận Cầu Giấy, Thành phố Hà Nội.\n"
 			. "                                                          Tel: (024-028) 8888 1111 | 1900999990 | http://digitelgroup.vn\n"
@@ -60,23 +60,23 @@ function template_export_excel($sql, $connection, $path_to_save, $name_file)
 		$sheet->getStyle('A' . $lastRow . ':' . $highestColumn . $lastRow)->getFont()->setBold(true);
 		$sheet->getRowDimension($lastRow)->setRowHeight(60); 
 	
-		// Đặt thuộc tính text wrap cho cell
+		// Define att text wrap for cell
 		$highestColumnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestColumn);
 		$sheet->getStyle('A' . $lastRow . ':' . $highestColumn . $lastRow)->getAlignment()->setWrapText(true);
 		$sheet->getStyle('A' . $lastRow . ':' . $highestColumn . $lastRow)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('f3f3f3');
 
-		// Chèn logo
+		// insert logo
 		$drawing = new Drawing();
 		$drawing->setName('Logo');
 		$drawing->setDescription('Logo');
-		$drawing->setPath('/var/www/excel_lib/screenshot_1700193829.png');  // Thay đường dẫn với đường dẫn thực tế của bạn
-		$drawing->setCoordinates('A' . $lastRow);  // Đặt vị trí cho logo
+		$drawing->setPath('/var/www/excel_lib/screenshot_1700193829.png');  
+		$drawing->setCoordinates('A' . $lastRow);  // Define location logo
 
-		// Đặt kích thước cho logo (thay đổi theo nhu cầu của bạn)
+		// Define size for logo
 		$drawing->setWidth(120);
 		$drawing->setHeight(79);
-		$drawing->setOffsetX(0); // Điều chỉnh vị trí theo trục X
-		$drawing->setOffsetY(2); // Điều chỉnh vị trí theo trục Y
+		$drawing->setOffsetX(0); // config location logo in X
+		$drawing->setOffsetY(2); // config location logo in Y
 		$drawing->setWorksheet($sheet);
 
         $writer = new Xlsx($spreadsheet);
