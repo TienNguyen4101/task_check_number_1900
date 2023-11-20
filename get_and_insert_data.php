@@ -57,7 +57,7 @@ function get_data_barring($day) {
             $array_container = array(
 				"Name" => $row["Name"],
 				"Email" => $row["Email"],
-                "CustomerCode" => $row["CustomerCode"],
+               			"CustomerCode" => $row["CustomerCode"],
 				"ContractCode" => $row["ContractCode"],
 				"Number" => $row["Number"],
 				"Day_Barring" => $row["Day_Barring"],
