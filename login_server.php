@@ -1,15 +1,15 @@
 <?php
-	$server_198 = "183.91.185.198";
-	$usename_198 = "User99";
-	$password_198 = "Ngoctien9";
-	$db_in_198 = "VoiceReport";
+	$server_198 = "something_in_here";
+	$usename_198 = "something_in_here";
+	$password_198 = "something_in_here";
+	$db_in_198 = "something_in_here";
 	
-	$server_local = "localhost";
-	$usename_local = "User99";
-	$password_local = "Chiru@123";
-	$db_in_local = "ReportDaily";
+	$server_local = "something_in_here";
+	$usename_local = "something_in_here";
+	$password_local = "something_in_here";
+	$db_in_local = "something_in_here";
 
-	$apiToken= "6369084280:AAFxZhzm4CrUznvj7ZAENCznn3AR-JKqg7M";
-	$chat_id = "@test_message123";
+	$apiToken= "something_in_here";
+	$chat_id = "something_in_here";
 
 ?>
