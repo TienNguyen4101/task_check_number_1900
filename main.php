@@ -30,8 +30,8 @@ if (get_data_barring("17") == FALSE ) {
     // $recipients = [
     //     ['email' => $value["email"], 'name' => $value["name"]],
     // ];
-    //     export_excel_file($value["customercode"] , $connect_server_198 , $file_path , $value["customercode"] . "_" . date('Y-m-d') . ".xlsx" );
-    //     send_email($file_path, $value["customercode"] . "_" . date('Y-m-d') . ".xlsx" , $recipients, $value["customercode"]);
+    //     export_excel_file($value["customercode"] , $file_path , $file_name_17  . "_" .  $value["customercode"] . "_" . date('Y-m-d') );
+    //     send_email($file_path, $file_name_17  . "_" .  $value["customercode"] . "_" . date('Y-m-d') . ".xlsx" , $recipients , $value["customercode"]);
     // }
 
     $recipients = [
