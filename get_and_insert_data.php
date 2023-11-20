@@ -3,29 +3,28 @@ date_default_timezone_set('Asia/Ho_Chi_Minh');
 require 'login_server.php';
 // ===================================================
 
-function check_data_barring($day) {
-	global $server_198, $usename_198, $password_198, $db_in_198;
-	$connect_server_198 = mysqli_connect($server_198, $usename_198, $password_198, $db_in_198)
-	or die ("Connection failed: " . mysqli_connect_error());
+// function check_data_barring($day) {
+// 	global $server_198, $usename_198, $password_198, $db_in_198;
+// 	$connect_server_198 = mysqli_connect($server_198, $usename_198, $password_198, $db_in_198)
+// 	or die ("Connection failed: " . mysqli_connect_error());
 
-    $sql = "
-	SELECT *
-	FROM ContractDetailsDVGTGT 
-	WHERE Number LIKE '1900%' AND StatusISDN = 2 AND DATEDIFF(NOW(), BarringDate) = $day";
+//     $sql = "
+// 	SELECT *
+// 	FROM ContractDetailsDVGTGT 
+// 	WHERE Number LIKE '1900%' AND StatusISDN = 2 AND DATEDIFF(NOW(), BarringDate) = $day";
 
-    $result = $connect_server_198->query($sql);
-    if ($result->num_rows == 0) {
-		$connect_server_198->close();
-		return FALSE;
-    }
-    else {
-		$connect_server_198->close();
-		return TRUE;
-    }
-}
+//     $result = $connect_server_198->query($sql);
+//     if ($result->num_rows == 0) {
+// 		$connect_server_198->close();
+// 		return FALSE;
+//     }
+//     else {
+// 		$connect_server_198->close();
+// 		return TRUE;
+//     }
+// }
 
 function get_data_barring($day) {
-
 	global $server_198, $usename_198, $password_198, $db_in_198;
 	$connect_server_198 = mysqli_connect($server_198, $usename_198, $password_198, $db_in_198)
 	or die ("Connection failed: " . mysqli_connect_error());
@@ -69,7 +68,9 @@ function get_data_barring($day) {
             );
             $array_output[] = $array_container;
         }
-    }
+    } else {
+		return FALSE;
+	}
 
 	$connect_server_198->close();
 	return $array_output;
