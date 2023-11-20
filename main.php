@@ -10,7 +10,9 @@ $file_name_19 = "Report_warning_day_19_" . date('Y-m-d');
 
 //============HANDLE LOGIC============//
 
-if (check_data_barring("17") == TRUE ) {
+if (get_data_barring("17") == FALSE ) {
+    echo "Hiện tại không có dữ liệu của ngày 17" . "\n";
+} else {
     insert_warn_telegram_local();
 
     //CustomerCode or ALL ===============================
@@ -38,19 +40,10 @@ if (check_data_barring("17") == TRUE ) {
     send_email($file_path, $file_name_17 . ".xlsx", $recipients, "ALL"); //==============!!!===============
 
     empty_table_local();
-
-} else {
-    echo "Hiện tại không có dữ liệu của ngày 17" . "\n";
 }
 
-if (check_data_barring("19") == TRUE) {
-    export_excel_file_19($sql_excel_19, $file_path, $file_name_19);
-    send_excel_telegram($apiToken, $chat_id , $file_path , $file_name_19 . ".xlsx" , "19");
-} 
-else {
-    echo "Hiện tại không có dữ liệu của ngày 19" . "\n";
-}
+export_excel_file_19($sql_excel_19, $file_path, $file_name_19);
+send_excel_telegram($apiToken, $chat_id , $file_path , $file_name_19 . ".xlsx" , "19");
 
 ob_end_flush(); 
-
 ?>
