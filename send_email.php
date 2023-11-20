@@ -101,15 +101,15 @@ function send_email($file_path, $file_name , $recipients , $customer) {
         $mail->isSMTP();
         $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
-        $mail->Username = 'tienxemutube412001@gmail.com';
-        $mail->Password = 'bmxpcpdvnbdyvolt';
+        $mail->Username = 'something_in_here';
+        $mail->Password = 'something_in_here';
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
         $mail->CharSet = 'UTF-8';
         $mail->Encoding = 'base64';
         $mail->Subject = '=?UTF-8?B?' . base64_encode('Subject') . '?=';
 
-        $mail->setFrom('tienxemutube412001@gmail.com', 'Leighton Nguyen');
+        $mail->setFrom('something_in_here', 'something_in_here');
 
 		//======================================================
 
