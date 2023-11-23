@@ -42,6 +42,9 @@ $get_before_2_month = ($get_before_2_months < 10) ? substr($get_before_2_months,
 $get_year = date("Y");
 $file_path = "/var/www/html/task_check_cong_no/excel_container/";
 $file_name = "Missing_debt_T" . $get_before_2_month;
+
+$get_last_day_2_month_ago = date("Y-m-t 23:59:59", strtotime("-2 months", strtotime(date("Y-m-d"))));
+
 //==============================================================================================
 
 function execute_send_message_telegram($chat_id , $apiToken , $output) {
@@ -87,7 +90,8 @@ Customers. `Name`,
 Liabilities.CustomerCode, 
 ContractDetails.StatusISDN,
 Liabilities.Years,
-TIMESTAMPDIFF(MONTH, Liabilities.DateRegisteredContract, NOW()) AS months_difference
+ContractDetails.DateStarted,
+ContractDetails.DateEnded
 
 FROM Liabilities
 LEFT JOIN ContractDetails ON Liabilities.ContractCode = ContractDetails.ContractCode
@@ -111,6 +115,8 @@ function get_customer_code_in_198($sql) {
 				"Name" => $row["Name"],
 				"CustomerCode" => $row["CustomerCode"],
 				"ContractCode" => $row["ContractCode"],
+				"DateStarted" => $row["DateStarted"],
+				"DateEnded" => $row["DateEnded"],
 				);
 			$array_output[] = $array_container;
 		}
@@ -118,65 +124,68 @@ function get_customer_code_in_198($sql) {
 	$connect_server_198->close();
 	return $array_output;
 }
-
 function get_month_debt($sql_get_contract_code) {
-	global $server_198, $usename_198, $password_198, $db_in_198 , $get_before_2_month , $get_year , $chat_id , $apiToken;
-	$connect_server_198 = mysqli_connect($server_198, $usename_198, $password_198, $db_in_198)
-	or die ("Connection failed: " . mysqli_connect_error());
+    global $server_198, $usename_198, $password_198, $db_in_198, $get_before_2_month, $get_year, $chat_id, $apiToken, $get_last_day_2_month_ago;
 
-	global $server_local, $usename_local, $password_local, $db_in_local;
-	$connect_server_local = mysqli_connect($server_local, $usename_local, $password_local, $db_in_local)
-	or die ("Connection failed: " . mysqli_connect_error());
+    $connect_server_198 = mysqli_connect($server_198, $usename_198, $password_198, $db_in_198)
+        or die("Connection failed: " . mysqli_connect_error());
 
-	$array_output = [];
-	foreach (get_customer_code_in_198($sql_get_contract_code) as $value) {
-		$sql_get_month_debt = "SELECT `Month`
-							   FROM Liabilities 
-							   WHERE ContractCode = '".$value["ContractCode"]."'
-							   AND Month = '".$get_before_2_month."'
-							   ";
-		$result = $connect_server_198->query($sql_get_month_debt); 
-		if ($result->num_rows > 0) {
+    global $server_local, $usename_local, $password_local, $db_in_local;
+    $connect_server_local = mysqli_connect($server_local, $usename_local, $password_local, $db_in_local)
+        or die("Connection failed: " . mysqli_connect_error());
+
+    $array_output = [];
+    foreach (get_customer_code_in_198($sql_get_contract_code) as $value) {
+        if ($value["DateStarted"] < $get_last_day_2_month_ago && $value["DateEnded"] > $get_last_day_2_month_ago) {
+            $sql_get_month_debt = "SELECT `Month`
+                FROM Liabilities 
+                WHERE ContractCode = '" . $value["ContractCode"] . "'
+                AND Month = '" . $get_before_2_month . "'";
+            $result = $connect_server_198->query($sql_get_month_debt);
+            if ($result->num_rows > 0) {
+                continue;
+            } else {
+                if ($value["CustomerCode"] == "DG88888" || $value["CustomerCode"] == "DG00000" || $value["CustomerCode"] == "DG00095") {
+                    continue;
+                } else {
+                    $sql_insert = "
+                        INSERT INTO `VoiceRecord`.report_debt
+                        (`Name`, `CustomerCode`, `ContractCode`, `Month`)
+                        VALUES 
+                        (
+                            '" . $value["Name"] . "',
+                            '" . $value["CustomerCode"] . "',
+                            '" . $value["ContractCode"] . "',
+                            '" . 'Tháng ' . $get_before_2_month . "'
+                        )
+                    ";
+                    if ($connect_server_local->query($sql_insert) === TRUE) {
+                        echo "Đã thêm vào bảng `VoiceRecord`.report_debt với ContractCode : " . $value["CustomerCode"] . "\n";
+                    } else {
+                        echo "Error: " . $connect_server_local->error . "\n";
+                    }
+
+                    $output = "";
+                    $title = "CẢNH BÁO: Chưa có công nợ tháng " . $get_before_2_month . " năm " . $get_year . "\n";
+                    $name = "Khách hàng: " . $value["Name"] . "\n";
+                    $customerCode = $value["CustomerCode"] . "\n";
+                    $contractCode = $value["ContractCode"] . "\n";
+                    $output .= $title . $name . $customerCode . $contractCode;
+
+                    if (execute_send_message_telegram($chat_id, $apiToken, $output)->ok == true) {
+                        echo "Đã gửi tin nhắn thành công đến " . $chat_id . "\n";
+                    } else {
+                        echo "Gửi tin nhắn thất bại" . "\n";
+                    }
+                }
+            }
+        } else {
+			echo "Hiện tại không có KH nào!" . "\n";
 			continue;
-		} else {
-			if ($value["CustomerCode"] == "DG88888" || $value["CustomerCode"] == "DG00000" || $value["CustomerCode"] == "DG00095") {
-				continue;
-			}
-			else {
-				$sql_insert = "
-				INSERT INTO `VoiceRecord`. report_debt
-				(`Name`, `CustomerCode`, `ContractCode`, `Month`)
-				VALUES 
-				(
-					'".$value["Name"]."',
-					'".$value["CustomerCode"]."', 
-					'".$value["ContractCode"]."', 
-					'".'Tháng ' . $get_before_2_month."'
-				)
-				";
-				if ( $connect_server_local->query($sql_insert) === TRUE) {
-					echo "Đã thêm vào bảng `VoiceRecord`. report_debt với ContractCode : ". $value["CustomerCode"] ."\n";
-				} else {
-					echo "Error: " . $connect_server_local -> error . "\n";
-				}
-
-				$output = "";
-				$title = "CẢNH BÁO: Chưa có công nợ tháng " . $get_before_2_month . " năm " . $get_year . "\n";
-				$name = "Khách hàng: " . $value["Name"] . "\n";
-				$customerCode = $value["CustomerCode"] . "\n";
-				$contractCode = $value["ContractCode"] . "\n";
-				$output .= $title . $name . $customerCode . $contractCode;
-
-				if(execute_send_message_telegram($chat_id , $apiToken , $output) ->ok == true) {
-					echo "Đã gửi tin nhắn thành công đến " . $chat_id . "\n";
-				} else {
-					echo "Gửi tin nhắn thất bại" . "\n";
-				}
-			}
 		}
-	}
-	$connect_server_local->close();
-	$connect_server_198->close();
+    }
+    $connect_server_local->close();
+    $connect_server_198->close();
 }
 
 function empty_table_local($table) {
