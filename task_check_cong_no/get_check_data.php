@@ -74,7 +74,7 @@ WHERE
             ContractDetails.StatusISDN IN ('3', '5')
             AND ContractDetails.DateEnded >= '".$get_first_day_2_month_ago."'
             AND (
-                ContractDetails.DateStarted <= '".$get_first_day_2_month_ago."'
+                ContractDetails.DateStarted <= '".$get_last_day_2_month_ago."'
                 AND ContractDetails.DateStarted <= ContractDetails.DateEnded
             )
         )
