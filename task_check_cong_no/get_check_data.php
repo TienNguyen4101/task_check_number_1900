@@ -1,6 +1,6 @@
 <?php
 require "login_server.php";
-require '/var/www/html/export_excel_template.php';
+require 'export_excel.php';
 ob_start(); 
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 
@@ -14,6 +14,10 @@ $file_name = "Missing_debt_T" . $get_before_2_monthS;
 
 $get_last_day_2_month_ago = date("Y-m-t 23:59:59", strtotime("-2 months", strtotime(date("Y-m-d"))));
 $get_first_day_2_month_ago = date("Y-m-01 00:00:00", strtotime("-2 months", strtotime(date("Y-m-d"))));
+
+$currentDateTime = new DateTime();
+$currentDateTime->modify('-2 months');
+$yearOfTwoMonthsAgo = $currentDateTime->format('Y');
 
 //==============================================================================================
 
@@ -78,23 +82,10 @@ WHERE
     AND ContractDetails.ContractCode NOT IN (
         SELECT Liabilities.ContractCode
         FROM Liabilities
-        WHERE Liabilities.Years = YEAR(NOW())
+        WHERE Liabilities.Years = '".$yearOfTwoMonthsAgo."'
         AND Liabilities.`Month` = '".$get_before_2_monthS."'
     )
 ";
-
-/* 
-1: Đang kích hoạt.
-2: Tạm ngưng -> Tạm ngưng đến ngày thứ 19 thì sẽ đổi sang 3 hoặc 5 tuỳ DateBarring
-  => Nếu DateBarring mà bắt đầu từ ngày 15/9 thì vẫn sẽ tính cước từ ngày 1->15.
-3: Huỷ Thanh Lý -> Thì không tính cước. 
-5: Đang Thanh Lý -> Thì không tính cước
-
-Nếu datebarring bắt đầu từ đầu tháng: 4/9 -> Sau 19 ngày nó sẽ là 5 và sang tháng sẽ là Huỷ Thanh Lý
-Nếu datebarring vẫn bắt đầu từ đầu tháng: 11/9 -> Sau 19 ngày nó sẽ là 3 là Huỷ Thanh Lý
-=> Vẫn có cước và tính tiền. 
-
-*/
 
 function get_customer_code_in_198($sql) {
 	global $server_198, $usename_198, $password_198, $db_in_198;
@@ -117,82 +108,35 @@ function get_customer_code_in_198($sql) {
 	return $array_output;
 }
 function get_month_debt() {
-    global $server_local, $usename_local, $password_local, $db_in_local, 
-	$get_before_2_monthS, $get_year, $chat_id, $apiToken, $sql_check_contract_missing_debt;
-
-    $connect_server_local = mysqli_connect($server_local, $usename_local, $password_local, $db_in_local)
-        or die("Connection failed: " . mysqli_connect_error());
-
+    global $get_before_2_monthS, $get_year, $chat_id, $apiToken, $sql_check_contract_missing_debt;
     $array_output = [];
-    foreach (get_customer_code_in_198($sql_check_contract_missing_debt) as $value) {
-			if ($value["CustomerCode"] == "DG88888" || $value["CustomerCode"] == "DG08888"
-			|| $value["CustomerCode"] == "DG00000" || $value["CustomerCode"] == "DG00095") {
-				continue;
+	$excluded_CustomerCode = ["DG88888", "DG08888", "DG00000", "DG00095"];
+	$get_data_from_sql = get_customer_code_in_198($sql_check_contract_missing_debt);
+	$filter_data = [];
+	
+	foreach ($get_data_from_sql as $value) {
+		if (!in_array($value["CustomerCode"], $excluded_CustomerCode)) {
+			$filter_data[] = $value;
+			$output = "";
+			$title = "CẢNH BÁO: Chưa có công nợ tháng " . $get_before_2_monthS . " năm " . $get_year . "\n";
+			$name = "Khách hàng: " . $value["Name"] . "\n";
+			$customerCode = $value["CustomerCode"] . "\n";
+			$contractCode = $value["ContractCode"] . "\n";
+			$output .= $title . $name . $customerCode . $contractCode;
+	
+			if (execute_send_message_telegram($chat_id, $apiToken, $output)->ok == true) {
+				echo "Đã gửi tin nhắn thành công đến " . $chat_id . "\n";
 			} else {
-				$sql_insert = "
-					INSERT INTO `VoiceRecord`.report_debt
-					(`Name`, `CustomerCode`, `ContractCode`, `Month`)
-					VALUES 
-					(
-						'" . $value["Name"] . "',
-						'" . $value["CustomerCode"] . "',
-						'" . $value["ContractCode"] . "',
-						'" . 'Tháng ' . $get_before_2_monthS . "'
-					)
-				";
-				if ($connect_server_local->query($sql_insert) === TRUE) {
-					echo "Đã thêm vào bảng `VoiceRecord`.report_debt với ContractCode : " . $value["CustomerCode"] . "\n";
-				} else {
-					echo "Error: " . $connect_server_local->error . "\n";
-				}
-
-				$output = "";
-				$title = "CẢNH BÁO: Chưa có công nợ tháng " . $get_before_2_monthS . " năm " . $get_year . "\n";
-				$name = "Khách hàng: " . $value["Name"] . "\n";
-				$customerCode = $value["CustomerCode"] . "\n";
-				$contractCode = $value["ContractCode"] . "\n";
-				$output .= $title . $name . $customerCode . $contractCode;
-
-				if (execute_send_message_telegram($chat_id, $apiToken, $output)->ok == true) {
-					echo "Đã gửi tin nhắn thành công đến " . $chat_id . "\n";
-				} else {
-					echo "Gửi tin nhắn thất bại" . "\n";
-				}
+				echo "Gửi tin nhắn thất bại" . "\n";
 			}
 		}
-    $connect_server_local->close();
-}
-
-function empty_table_local($table) {
-	global $server_local, $usename_local, $password_local, $db_in_local;
-	$connect_server_local = mysqli_connect($server_local, $usename_local, $password_local, $db_in_local)
-	or die ("Connection failed: " . mysqli_connect_error());
-
-	$sql_insert = "
-	DELETE FROM ".$table."
-	";
-	if ( $connect_server_local->query($sql_insert) === TRUE) {
-		echo "Đã CLEAR bảng " . $table . " thành công" . "\n";
-	} else {
-		echo "Error: " . $connect_server_local-> error . "\n";
 	}
-	$connect_server_local -> close();
+	
+	$get_data_from_sql = $filter_data;
+	return $get_data_from_sql;
 }
 
-function export_excel_send_telegram($sql) {
-	global $server_local, $usename_local, $password_local, $db_in_local , $file_path , $file_name, $apiToken, $chat_id;
-	$connect_server_local = mysqli_connect($server_local, $usename_local, $password_local, $db_in_local)
-	or die ("Connection failed: " . mysqli_connect_error());
-
-	template_export_excel($sql, $connect_server_local, $file_path, $file_name);
-	send_excel_telegram($apiToken, $chat_id , $file_path , $file_name . ".xlsx") ;
-	$connect_server_local -> close();
-}
-
-$sql_get_data_local = "SELECT * FROM report_debt";
-
-get_month_debt();
-export_excel_send_telegram($sql_get_data_local);
-empty_table_local("report_debt");
+template_export_excel(get_month_debt(), $file_path, $file_name);
+send_excel_telegram($apiToken, $chat_id , $file_path , $file_name . ".xlsx") ;
 ob_end_flush(); 
 ?>
